@@ -46,3 +46,21 @@ print("O ano/mês com a maior precipitação é:")
 print("Ano:", int(mais_chuvoso['ano']))
 print("Mês:", int(mais_chuvoso['mes']))
 print("A precipitação total nesse ano/mês foi de:", mais_chuvoso['precip'])
+
+# Média da temperatura entre 2006 e 2016
+mes_escolhido = int(input("Digite o número do mês (1-12): "))
+filtro_dados = dados[(dados["mes"] == mes_escolhido) & (dados["ano"].between(2006, 2016))]
+media_anual = filtro_dados.groupby("ano")["minima"].mean()
+
+for ano, media in media_anual.items():
+    print(f"Média da temperatura mínima para o mês {mes_escolhido}/{ano}: {media:.2f} graus")
+
+media_total = filtro_dados["minima"].mean()
+print(f"Média geral da temperatura mínima para o mês {mes_escolhido}: {media_total:.2f} graus")
+
+# Gráfico de médias
+grafico = plt.bar(media_anual.index, media_anual.values, color='purple')
+plt.xlabel("Ano")
+plt.ylabel("Média da Temperatura Mínima")
+plt.title(f"Média da Temperatura Mínima para o mês {mes_escolhido}")
+plt.show()
