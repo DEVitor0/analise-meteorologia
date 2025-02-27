@@ -1,66 +1,83 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Carregar os dados
-dados = pd.read_csv('OK_Anexo_Arquivo_Dados_Projeto.csv', sep=';')
+df = pd.read_csv('OK_Anexo_Arquivo_Dados_Projeto.csv', sep=';')
 
-dados.head(10)
-type(dados)
-dados.shape
-dados.columns
-dados.info()
-dados.isnull().sum()
+# Exibir informações gerais
+def exibir_informacoes(df):
+    print("\nPrimeiras 10 linhas:")
+    print(df.head(10))
+    print("\nTipo de dados:")
+    print(type(df))
+    print("\nDimensões do dataset:", df.shape)
+    print("\nColunas disponíveis:")
+    print(df.columns)
+    print("\nResumo dos dados:")
+    print(df.info())
+    print("\nValores nulos por coluna:")
+    print(df.isnull().sum())
 
-# Correção de preciptações negativas
-dados.query('precip < 0').index
-registros_a_remover = dados.query('precip < 0').index
-dados.drop(registros_a_remover, axis=0, inplace=True)
-dados.query('precip < 0')
-dados.head(10)
+def limpar_dados(df):
+    """Corrige valores inconsistentes e converte tipos de dados"""
+    df.drop(df[df['precip'] < 0].index, inplace=True)
+    df['data'] = pd.to_datetime(df['data'], format='%d/%m/%Y')
+    df['ano'] = df['data'].dt.year.astype(int)
+    df['mes'] = df['data'].dt.month.astype(int)
+    return df
 
-# Definir colunas de data
-dados['data'] = pd.to_datetime(dados['data'], format='%d/%m/%Y')
-dados['ano'] = dados['data'].dt.year.astype(int)
-dados['mes'] = dados['data'].dt.month.astype(int)
+def encontrar_data_mais_chuvosa(df):
+    """Retorna a data com maior precipitação"""
+    dia_chuvoso = df.loc[df['precip'].idxmax()]
+    return dia_chuvoso['data'].strftime('%d-%m-%Y'), dia_chuvoso['precip']
 
-# Encontrar data mais chuvosa
-def encontrar_data_mais_chuvosa(dados):
-    data_chuvosa = {}
-    for _, row in dados.iterrows():
-        mes_ano = row['data'].strftime('%d-%m-%Y')
-        precipitacao = row['precip']
-        data_chuvosa[mes_ano] = precipitacao
-    
-    dia_chuvoso = max(data_chuvosa, key=data_chuvosa.get)
-    maior_precipitacao = data_chuvosa[dia_chuvoso]
-    return dia_chuvoso, maior_precipitacao
+def encontrar_mes_mais_chuvoso(df):
+    """Identifica o mês e ano com maior precipitação total"""
+    precip_total = df.groupby(['ano', 'mes'])['precip'].sum().reset_index()
+    mais_chuvoso = precip_total.loc[precip_total['precip'].idxmax()]
+    return mais_chuvoso
 
-dia_chuvoso, maior_precipitacao = encontrar_data_mais_chuvosa(dados)
-print("Data mais chuvosa:", dia_chuvoso)
-print("A preciptação nesse dia foi de:", maior_precipitacao)
+def calcular_media_temperatura(df, mes_escolhido):
+    """Calcula a média da temperatura mínima entre 2006 e 2016 para o mês escolhido"""
+    filtro_dados = df[(df['mes'] == mes_escolhido) & (df['ano'].between(2006, 2016))]
+    media_anual = filtro_dados.groupby("ano")["minima"].mean()
+    media_total = filtro_dados["minima"].mean()
+    return media_anual, media_total
 
-# Encontrar ano/mês mais chuvoso
-precip_total = dados.groupby(['ano', 'mes'])['precip'].sum().reset_index()
-mais_chuvoso = precip_total.loc[precip_total['precip'].idxmax()]
-print("O ano/mês com a maior precipitação é:")
-print("Ano:", int(mais_chuvoso['ano']))
-print("Mês:", int(mais_chuvoso['mes']))
-print("A precipitação total nesse ano/mês foi de:", mais_chuvoso['precip'])
+def gerar_grafico_temperatura(media_anual, mes_escolhido):
+    """Gera um gráfico de barras para visualizar a temperatura mínima ao longo dos anos"""
+    plt.figure(figsize=(10,5))
+    sns.barplot(x=media_anual.index, y=media_anual.values, palette='coolwarm')
+    plt.xlabel("Ano")
+    plt.ylabel("Média da Temperatura Mínima")
+    plt.title(f"Média da Temperatura Mínima para o mês {mes_escolhido}")
+    plt.xticks(rotation=45)
+    plt.show()
 
-# Média da temperatura entre 2006 e 2016
+def gerar_grafico_precipitacao(df):
+    """Gera um gráfico da precipitação média mensal ao longo dos anos"""
+    plt.figure(figsize=(12,6))
+    media_mensal = df.groupby(['ano', 'mes'])['precip'].mean().unstack()
+    media_mensal.T.plot(kind='line', colormap='viridis', figsize=(12,6))
+    plt.title("Precipitação Média Mensal por Ano")
+    plt.xlabel("Mês")
+    plt.ylabel("Precipitação Média")
+    plt.legend(title='Ano', bbox_to_anchor=(1,1))
+    plt.grid()
+    plt.show()
+
+# Execução do código
+exibir_informacoes(df)
+df = limpar_dados(df)
+dia_chuvoso, maior_precipitacao = encontrar_data_mais_chuvosa(df)
+mais_chuvoso = encontrar_mes_mais_chuvoso(df)
+print(f"Data mais chuvosa: {dia_chuvoso} com {maior_precipitacao} mm de precipitação")
+print(f"Ano/Mês mais chuvoso: {int(mais_chuvoso['ano'])}-{int(mais_chuvoso['mes'])} com {mais_chuvoso['precip']} mm")
+
+# Solicita o mês ao usuário
 mes_escolhido = int(input("Digite o número do mês (1-12): "))
-filtro_dados = dados[(dados["mes"] == mes_escolhido) & (dados["ano"].between(2006, 2016))]
-media_anual = filtro_dados.groupby("ano")["minima"].mean()
-
-for ano, media in media_anual.items():
-    print(f"Média da temperatura mínima para o mês {mes_escolhido}/{ano}: {media:.2f} graus")
-
-media_total = filtro_dados["minima"].mean()
-print(f"Média geral da temperatura mínima para o mês {mes_escolhido}: {media_total:.2f} graus")
-
-# Gráfico de médias
-grafico = plt.bar(media_anual.index, media_anual.values, color='purple')
-plt.xlabel("Ano")
-plt.ylabel("Média da Temperatura Mínima")
-plt.title(f"Média da Temperatura Mínima para o mês {mes_escolhido}")
-plt.show()
+media_anual, media_total = calcular_media_temperatura(df, mes_escolhido)
+print(f"Média geral da temperatura mínima para o mês {mes_escolhido}: {media_total:.2f}°C")
+gerar_grafico_temperatura(media_anual, mes_escolhido)
+gerar_grafico_precipitacao(df)
