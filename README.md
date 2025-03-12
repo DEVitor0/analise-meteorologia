@@ -20,7 +20,7 @@ Este projeto foi desenvolvido para análise de dados meteorológicos, utilizando
 ```
 📂 projeto-analise-meteorologica
 │-- 📂 data                # Diretório de arquivos de dados
-│   ├── OK_Anexo_Arquivo_Dados_Projeto.csv
+│   ├── dates.csv
 │
 │-- 📂 src                 # Código-fonte principal
 │   ├── data_loader.py     # Carregamento e tratamento de dados
