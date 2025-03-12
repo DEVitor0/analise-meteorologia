@@ -28,16 +28,6 @@ Este projeto foi desenvolvido para análise de dados meteorológicos, utilizando
 │   ├── visualization.py   # Geração de gráficos e visualizações
 │   ├── main.py            # Script principal para execução do projeto
 │
-│-- 📂 docs                # Documentação do projeto
-│   ├── README.md          # Visão geral do projeto
-│   ├── TECHNICAL_DETAILS.md  # Documentação técnica (este arquivo)
-│
-│-- 📂 notebooks           # Notebooks Jupyter opcionais para experimentação
-│   ├── exploratory_analysis.ipynb
-│
-│-- 📂 reports             # Relatórios gerados automaticamente
-│   ├── relatorio_anual.pdf
-│
 │-- 📄 requirements.txt     # Dependências do projeto
 │-- 📄 .gitignore           # Arquivos a serem ignorados pelo Git
 ```
